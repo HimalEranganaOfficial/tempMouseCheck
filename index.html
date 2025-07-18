@@ -1,0 +1,107 @@
+<script>
+    // HiveMQ Cloud Connection Details
+    const MQTT_BROKER_URL = "wss://2349ed5f8e98442d0d4e26486f95d647.s1.eu.hivemq.cloud:8884/mqtt";
+    const MQTT_USERNAME = "HimalsBLEMouse";
+    const MQTT_PASSWORD = "mnG=g85#g%94"; // Updated with your password
+    const MQTT_TOPIC_LED_CONTROL = "esp32/led/control";
+    const MQTT_TOPIC_STATUS = "esp32/status";
+
+    let client;
+    let ledState = false;
+
+    const connectionStatusDiv = document.getElementById('connectionStatus');
+    const toggleLedButton = document.getElementById('toggleLedButton');
+    const messageLogDiv = document.getElementById('messageLog');
+
+    // Function to log messages to the UI
+    function logMessage(message, type = 'info') {
+        const p = document.createElement('p');
+        p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        if (type === 'error') {
+            p.classList.add('text-red-600', 'font-bold');
+        } else if (type === 'success') {
+            p.classList.add('text-green-600');
+        }
+        messageLogDiv.prepend(p);
+        if (messageLogDiv.children.length > 20) {
+            messageLogDiv.removeChild(messageLogDiv.lastChild);
+        }
+    }
+
+    function updateConnectionStatus(status, colorClass) {
+        connectionStatusDiv.textContent = status;
+        connectionStatusDiv.className = `mb-6 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md ${colorClass}`;
+    }
+
+    function connectMqtt() {
+        logMessage("Attempting to connect to MQTT broker...");
+        updateConnectionStatus("Connecting...", "bg-gray-500");
+
+        client = mqtt.connect(MQTT_BROKER_URL, {
+            username: MQTT_USERNAME,
+            password: MQTT_PASSWORD,
+            clientId: 'web_client_' + Math.random().toString(16).substr(2, 8),
+            clean: true,
+            reconnectPeriod: 5000
+        });
+
+        client.on('connect', () => {
+            logMessage("Successfully connected to MQTT broker!", 'success');
+            updateConnectionStatus("Connected", "bg-green-600");
+            toggleLedButton.disabled = false;
+            client.subscribe(MQTT_TOPIC_STATUS, (err) => {
+                if (!err) {
+                    logMessage(`Subscribed to ${MQTT_TOPIC_STATUS}`);
+                } else {
+                    logMessage(`Subscription error: ${err}`, 'error');
+                }
+            });
+        });
+
+        client.on('message', (topic, message) => {
+            logMessage(`Received [${topic}]: ${message.toString()}`);
+        });
+
+        client.on('error', (err) => {
+            logMessage(`MQTT Error: ${err}`, 'error');
+            updateConnectionStatus("Error", "bg-red-600");
+            toggleLedButton.disabled = true;
+        });
+
+        client.on('close', () => {
+            logMessage("Disconnected from MQTT broker.", 'info');
+            updateConnectionStatus("Disconnected", "bg-yellow-600");
+            toggleLedButton.disabled = true;
+        });
+
+        client.on('reconnect', () => {
+            logMessage("Reconnecting to MQTT broker...", 'info');
+            updateConnectionStatus("Reconnecting...", "bg-orange-500");
+        });
+    }
+
+    toggleLedButton.addEventListener('click', () => {
+        if (client && client.connected) {
+            ledState = !ledState;
+            const command = ledState ? "ON" : "OFF";
+            client.publish(MQTT_TOPIC_LED_CONTROL, command, { qos: 0 }, (err) => {
+                if (err) {
+                    logMessage(`Failed to publish: ${err}`, 'error');
+                } else {
+                    logMessage(`Published command: ${command} to ${MQTT_TOPIC_LED_CONTROL}`);
+                    toggleLedButton.textContent = `Toggle LED (${command})`;
+                    toggleLedButton.classList.toggle('bg-indigo-600', !ledState);
+                    toggleLedButton.classList.toggle('bg-red-600', ledState);
+                    toggleLedButton.classList.toggle('hover:bg-indigo-700', !ledState);
+                    toggleLedButton.classList.toggle('hover:bg-red-700', ledState);
+                    toggleLedButton.classList.toggle('focus:ring-indigo-500', !ledState);
+                    toggleLedButton.classList.toggle('focus:ring-red-500', ledState);
+                }
+            });
+        } else {
+            logMessage("Not connected to MQTT broker. Cannot send command.", 'error');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', connectMqtt);
+</script>
