@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP32 LED Control</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom font for a clean look */
@@ -18,31 +17,27 @@
     <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full text-center transform transition-all duration-300 hover:scale-105">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">ESP32 LED Control</h1>
 
-        <!-- Connection Status Display -->
         <div id="connectionStatus" class="mb-6 px-4 py-2 rounded-lg text-sm font-medium text-white bg-gray-500 shadow-md">
             Connecting to MQTT Broker...
         </div>
 
-        <!-- LED Control Button -->
         <button id="toggleLedButton"
                 class="w-full py-4 px-6 bg-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
                 disabled>
             Toggle LED (OFF)
         </button>
 
-        <!-- Message Log -->
         <div class="mt-8 bg-gray-50 p-4 rounded-lg shadow-inner text-left h-48 overflow-y-auto text-sm text-gray-700">
             <h2 class="font-semibold text-gray-800 mb-2">MQTT Log:</h2>
             <div id="messageLog"></div>
         </div>
     </div>
 
-    <!-- MQTT.js library for browser-based MQTT client -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <script>
         const MQTT_BROKER_URL = "wss://2349ed5f8e98442d0d4e26486f95d647.s1.eu.hivemq.cloud:8884/mqtt";
-        const MQTT_USERNAME = "HimaleBleMouse";
+        const MQTT_USERNAME = "HimalsBLEMouse"; // CORRECTED: Changed from "HimaleBleMouse"
         const MQTT_PASSWORD = "mnG=g85#g%94";
         const MQTT_TOPIC_LED_CONTROL = "esp32/led/control";
         const MQTT_TOPIC_STATUS = "esp32/status";
