@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Himal's MQTT LED Controller</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    #log {
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      height: 300px;
+      overflow-y: scroll;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+    input, button {
+      font-size: 16px;
+      padding: 6px 12px;
+      margin: 5px;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>💡 Himal's MQTT LED Control Panel</h2>
+
+<button onclick="sendCommand('ON')">Turn LED ON</button>
+<button onclick="sendCommand('OFF')">Turn LED OFF</button>
+
+<h3>📜 Log:</h3>
+<div id="log"></div>
+
+<script>
+  const log = (msg) => {
+    const el = document.getElementById("log");
+    el.textContent += msg + "\n";
+    el.scrollTop = el.scrollHeight;
+  };
+
+  const options = {
+    clean: true,
+    connectTimeout: 4000,
+    clientId: 'WebClient_' + Math.random().toString(16).substr(2, 8),
+    username: 'WebClient',
+    password: 'mnG=g85#g%94',
+  };
+
+  const connectUrl = 'wss://37dddb13e72947918e4d9af67c714674.s1.eu.hivemq.cloud:8884/mqtt';
+  const topic = 'himalsmouse/control';
+
+  const client = mqtt.connect(connectUrl, options);
+
+  client.on('connect', () => {
+    log('✅ Connected to HiveMQ Cloud');
+    client.subscribe(topic, (err) => {
+      if (!err) {
+        log('📥 Subscribed to topic: ' + topic);
+      }
+    });
+  });
+
+  client.on('reconnect', () => log('🔄 Reconnecting...'));
+  client.on('error', (err) => log('❌ Error: ' + err.message));
+  client.on('message', (t, message) => {
+    log(`📨 [${t}] ${message.toString()}`);
+  });
+
+  function sendCommand(command) {
+    client.publish(topic, command);
+    log(`🚀 Sent: ${command}`);
+  }
+</script>
+
+</body>
+</html>
