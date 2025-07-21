@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Himal's MQTT Web Client</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    #log {
+      white-space: pre-wrap;
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      height: 300px;
+      overflow-y: scroll;
+      border-radius: 5px;
+    }
+    input, button {
+      margin-top: 10px;
+      font-size: 16px;
+      padding: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📡 Himal's MQTT Web Control Panel</h2>
+
+<input type="text" id="messageInput" placeholder="Enter message" />
+<button onclick="sendMessage()">Send</button>
+
+<h3>📜 Log:</h3>
+<div id="log"></div>
+
+<script>
+  const log = (msg) => {
+    const el = document.getElementById("log");
+    el.textContent += msg + "\n";
+    el.scrollTop = el.scrollHeight;
+  };
+
+  const options = {
+    clean: true,
+    connectTimeout: 4000,
+    clientId: 'WebClient_' + Math.random().toString(16).substr(2, 8),
+    username: 'WebClient',
+    password: 'mnG=g85#g%94',
+  };
+
+  const connectUrl = 'wss://37dddb13e72947918e4d9af67c714674.s1.eu.hivemq.cloud:8884/mqtt';
+  const topic = 'himalsmouse/control';
+
+  const client = mqtt.connect(connectUrl, options);
+
+  client.on('connect', () => {
+    log('✅ Connected to HiveMQ Cloud');
+    client.subscribe(topic, (err) => {
+      if (!err) {
+        log('📥 Subscribed to topic: ' + topic);
+      }
+    });
+  });
+
+  client.on('reconnect', () => log('🔄 Reconnecting...'));
+  client.on('error', (err) => log('❌ Error: ' + err.message));
+  client.on('message', (t, message) => {
+    log(`📨 [${t}] ${message.toString()}`);
+  });
+
+  function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const msg = input.value.trim();
+    if (msg) {
+      client.publish(topic, msg);
+      log(`🚀 Sent: ${msg}`);
+      input.value = "";
+    }
+  }
+</script>
+
+</body>
+</html>
