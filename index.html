@@ -11,6 +11,9 @@
       grid-template-columns: auto auto auto;
       gap: 10px;
     }
+    .click-grid {
+      margin-top: 20px;
+    }
     button {
       padding: 12px 20px;
       font-size: 18px;
@@ -40,6 +43,11 @@
   <div></div><button id="upBtn">⬆️</button><div></div>
   <button id="leftBtn">⬅️</button><div></div><button id="rightBtn">➡️</button>
   <div></div><button id="downBtn">⬇️</button><div></div>
+</div>
+
+<div class="click-grid">
+  <button id="clickBtn">🖱️ Left Click</button>
+  <button id="rclickBtn">🖱️ Right Click</button>
 </div>
 
 <h3>📜 Log:</h3>
@@ -86,6 +94,8 @@
     downBtn: 'DOWN',
     leftBtn: 'LEFT',
     rightBtn: 'RIGHT',
+    clickBtn: 'CLICK',
+    rclickBtn: 'RCLICK'
   };
 
   for (const [id, dir] of Object.entries(buttons)) {
