@@ -89,6 +89,7 @@
     log(`🚀 Sent: ${payload}`);
   };
 
+  // 👉 Button ID → MQTT Direction
   const buttons = {
     upBtn: 'UP',
     downBtn: 'DOWN',
@@ -98,6 +99,7 @@
     rclickBtn: 'RCLICK'
   };
 
+  // ➕ Pointer press handling (mouse/touch)
   for (const [id, dir] of Object.entries(buttons)) {
     const btn = document.getElementById(id);
     btn.addEventListener("pointerdown", () => send(dir, true));
@@ -105,16 +107,14 @@
     btn.addEventListener("pointerleave", () => send(dir, false));
   }
 
-  // 🧠 Keyboard Support
+  // 🎹 Keyboard support with multi-key hold
   const keyMap = {
     'ArrowUp': 'UP',
     'ArrowDown': 'DOWN',
     'ArrowLeft': 'LEFT',
     'ArrowRight': 'RIGHT',
-    'a': 'CLICK',
-    'A': 'CLICK',
-    'd': 'RCLICK',
-    'D': 'RCLICK'
+    'a': 'CLICK', 'A': 'CLICK',
+    'd': 'RCLICK', 'D': 'RCLICK'
   };
 
   const pressedKeys = {};
