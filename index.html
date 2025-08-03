@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Himal's Remote Mouse Control</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #fff; padding: 20px; }
+    .button-grid {
+      display: inline-grid;
+      grid-template-columns: auto auto auto;
+      gap: 10px;
+    }
+    .click-grid {
+      margin-top: 20px;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #log {
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      margin-top: 20px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🖱️ Himal's Remote Mouse Controller</h2>
+
+<div class="button-grid">
+  <div></div><button id="upBtn">⬆️</button><div></div>
+  <button id="leftBtn">⬅️</button><div></div><button id="rightBtn">➡️</button>
+  <div></div><button id="downBtn">⬇️</button><div></div>
+</div>
+
+<div class="click-grid">
+  <button id="clickBtn">🖱️ Left Click (A)</button>
+  <button id="rclickBtn">🖱️ Right Click (D)</button>
+</div>
+
+<h3>📜 Log:</h3>
+<div id="log"></div>
+
+<script>
+  const log = msg => {
+    const el = document.getElementById("log");
+    el.textContent += msg + "\n";
+    el.scrollTop = el.scrollHeight;
+  };
+
+  const options = {
+    clean: true,
+    connectTimeout: 4000,
+    clientId: 'WebClient_' + Math.random().toString(16).substr(2, 8),
+    username: 'WebClient',
+    password: 'mnG=g85#g%94',
+  };
+
+  const connectUrl = 'wss://37dddb13e72947918e4d9af67c714674.s1.eu.hivemq.cloud:8884/mqtt';
+  const topic = 'himalsmouse/control';
+  const client = mqtt.connect(connectUrl, options);
+
+  client.on('connect', () => {
+    log('✅ Connected to MQTT broker');
+    client.subscribe(topic, err => {
+      if (!err) log('📥 Subscribed to topic: ' + topic);
+    });
+  });
+
+  client.on('error', err => log('❌ ' + err.message));
+  client.on('reconnect', () => log('🔄 Reconnecting...'));
+  client.on('message', (t, msg) => log(`📨 ${t}: ${msg}`));
+
+  const send = (dir, hold) => {
+    const payload = JSON.stringify({ dir, hold });
+    client.publish(topic, payload);
+    log(`🚀 Sent: ${payload}`);
+  };
+
+  const buttons = {
+    upBtn: 'UP',
+    downBtn: 'DOWN',
+    leftBtn: 'LEFT',
+    rightBtn: 'RIGHT',
+    clickBtn: 'CLICK',
+    rclickBtn: 'RCLICK'
+  };
+
+  for (const [id, dir] of Object.entries(buttons)) {
+    const btn = document.getElementById(id);
+    btn.addEventListener("pointerdown", () => send(dir, true));
+    btn.addEventListener("pointerup", () => send(dir, false));
+    btn.addEventListener("pointerleave", () => send(dir, false));
+  }
+
+  // 🧠 Keyboard Support
+  const keyMap = {
+    'ArrowUp': 'UP',
+    'ArrowDown': 'DOWN',
+    'ArrowLeft': 'LEFT',
+    'ArrowRight': 'RIGHT',
+    'a': 'CLICK',
+    'A': 'CLICK',
+    'd': 'RCLICK',
+    'D': 'RCLICK'
+  };
+
+  const pressedKeys = {};
+
+  document.addEventListener("keydown", e => {
+    const dir = keyMap[e.key];
+    if (dir && !pressedKeys[e.key]) {
+      send(dir, true);
+      pressedKeys[e.key] = true;
+    }
+  });
+
+  document.addEventListener("keyup", e => {
+    const dir = keyMap[e.key];
+    if (dir) {
+      send(dir, false);
+      pressedKeys[e.key] = false;
+    }
+  });
+</script>
+
+</body>
+</html>
