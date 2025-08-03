@@ -99,12 +99,47 @@
     rclickBtn: 'RCLICK'
   };
 
-  // ➕ Pointer press handling (mouse/touch)
+  const activeTouches = {}; // track touches per button
+
   for (const [id, dir] of Object.entries(buttons)) {
     const btn = document.getElementById(id);
-    btn.addEventListener("pointerdown", () => send(dir, true));
-    btn.addEventListener("pointerup", () => send(dir, false));
-    btn.addEventListener("pointerleave", () => send(dir, false));
+
+    // Mouse / stylus support
+    btn.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      send(dir, true);
+    });
+    btn.addEventListener("pointerup", e => {
+      e.preventDefault();
+      send(dir, false);
+    });
+    btn.addEventListener("pointerleave", e => {
+      e.preventDefault();
+      send(dir, false);
+    });
+
+    // Multi-touch mobile support
+    btn.addEventListener("touchstart", e => {
+      e.preventDefault();
+      activeTouches[dir] = true;
+      send(dir, true);
+    }, { passive: false });
+
+    btn.addEventListener("touchend", e => {
+      e.preventDefault();
+      if (activeTouches[dir]) {
+        delete activeTouches[dir];
+        send(dir, false);
+      }
+    }, { passive: false });
+
+    btn.addEventListener("touchcancel", e => {
+      e.preventDefault();
+      if (activeTouches[dir]) {
+        delete activeTouches[dir];
+        send(dir, false);
+      }
+    }, { passive: false });
   }
 
   // 🎹 Keyboard support with multi-key hold
